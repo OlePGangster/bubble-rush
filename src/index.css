@@ -3,3 +3,63 @@
 body {
   margin: 0;
 }
+
+/* ── Directional crossing: left↔right or top↔bottom ─────────────────────── */
+@keyframes bubble-cross {
+  0%   { transform: translate(var(--start-x), var(--start-y)) rotate(0deg); }
+  100% { transform: translate(var(--end-x), var(--end-y)) rotate(var(--total-rotation)); }
+}
+
+@keyframes bubble-drift {
+  0%   { transform: translate(var(--start-x), var(--start-y)) rotate(0deg); }
+  50%  { transform: translate(var(--mid-x), var(--mid-y)) rotate(calc(var(--total-rotation) * 0.45)); }
+  100% { transform: translate(var(--end-x), var(--end-y)) rotate(var(--total-rotation)); }
+}
+
+@keyframes bubble-sway {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  25%      { transform: translate3d(0, -5px, 0) scale(1.012); }
+  50%      { transform: translate3d(0, 3px, 0) scale(0.992); }
+  75%      { transform: translate3d(0, -4px, 0) scale(1.008); }
+}
+
+@keyframes bubble-pop {
+  0%   { transform: scale(1);   opacity: 0.9; }
+  60%  { transform: scale(1.8); opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0;   }
+}
+
+@keyframes score-float {
+  0%   { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+  25%  { transform: translate(-50%, -80%) scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -200%);            opacity: 0; }
+}
+
+@keyframes level-up-appear {
+  0%         { opacity: 0; scale: 0.6; }
+  15%, 75%   { opacity: 1; scale: 1;   }
+  100%       { opacity: 0; scale: 0.8; }
+}
+
+@keyframes life-flash {
+  0%, 100% { opacity: 0; }
+  35%, 65%  { opacity: 1; }
+}
+
+/* Slow ambient glow drift (ocean / candy backgrounds) */
+@keyframes ambient-float {
+  0%, 100% { transform: translateY(0px);   }
+  50%       { transform: translateY(-28px); }
+}
+
+/* Pulsing outer ring for space-theme bubbles */
+@keyframes space-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1;    }
+}
+
+.bubble-pop {
+  animation: bubble-pop 0.22s ease-out forwards !important;
+  pointer-events: none;
+  cursor: default;
+}

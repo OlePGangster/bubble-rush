@@ -1,38 +1,148 @@
-const COLORS = [
-  'bg-blue-400',
-  'bg-purple-400',
-  'bg-pink-400',
-  'bg-cyan-400',
-  'bg-green-400',
-  'bg-yellow-400',
-  'bg-red-400',
-  'bg-orange-400',
-  'bg-indigo-400',
-  'bg-teal-400',
-];
-
-export default function Bubble({ id, x, y, size, colorIndex, onPop, isPopping }) {
-  const color = COLORS[colorIndex % COLORS.length];
+/**
+ * A bubble that moves across the screen using CSS keyframes.
+ * The wrapper owns pathing, the shell adds a gentle bob, and the inner core
+ * handles the pop animation so those transforms do not conflict.
+ */
+export default function Bubble({
+  id,
+  size,
+  isPopping,
+  basePoints,
+  startX,
+  startY,
+  endX,
+  endY,
+  midX,
+  midY,
+  totalRotation,
+  duration,
+  motionType = 'cross',
+  bubbleStyle,
+  bobDelay = '0s',
+  hoverRadius = 0,
+  onPop,
+  onExpire,
+}) {
+  const animationName = motionType === 'drift' ? 'bubble-drift' : 'bubble-cross';
 
   return (
-    <button
-      onClick={() => onPop(id)}
+    <div
       style={{
-        left: `${x}%`,
-        top: `${y}%`,
+        position: 'absolute',
+        left: 0,
+        top: 0,
         width: `${size}px`,
         height: `${size}px`,
+        willChange: 'transform',
+        pointerEvents: 'none',
+        '--start-x': `${startX}px`,
+        '--start-y': `${startY}px`,
+        '--mid-x': `${midX ?? (startX + endX) / 2}px`,
+        '--mid-y': `${midY ?? (startY + endY) / 2}px`,
+        '--end-x': `${endX}px`,
+        '--end-y': `${endY}px`,
+        '--total-rotation': `${totalRotation}deg`,
+        animation: `${animationName} ${duration}s linear forwards`,
+        animationPlayState: isPopping ? 'paused' : 'running',
       }}
-      className={`absolute rounded-full ${color} opacity-80 shadow-lg cursor-pointer
-        flex items-center justify-center select-none
-        transition-transform duration-100
-        ${isPopping ? 'scale-150 opacity-0' : 'scale-100 hover:scale-110 animate-bounce'}
-      `}
-      aria-label="Pop bubble"
+      onAnimationEnd={(event) => {
+        if (event.animationName === animationName) onExpire(id);
+      }}
     >
-      <span className="text-white text-xl font-bold pointer-events-none">
-        {isPopping ? '💥' : ''}
-      </span>
-    </button>
+      <div
+        style={{
+          position: 'absolute',
+          inset: `-${hoverRadius}px`,
+          borderRadius: '50%',
+          pointerEvents: isPopping ? 'none' : 'auto',
+          cursor: isPopping ? 'default' : 'crosshair',
+        }}
+        onMouseEnter={(event) => !isPopping && onPop(id, basePoints, event.clientX, event.clientY)}
+      />
+
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          animation: `bubble-sway ${Math.max(2.8, duration * 0.45)}s ease-in-out ${bobDelay} infinite`,
+          animationPlayState: isPopping ? 'paused' : 'running',
+          willChange: 'transform',
+        }}
+      >
+        <div
+          className={isPopping ? 'bubble-pop' : ''}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            background: bubbleStyle.fill,
+            boxShadow: [
+              `0 12px 34px ${bubbleStyle.glow}`,
+              `0 0 0 1px ${bubbleStyle.rim}`,
+              'inset 0 -10px 18px rgba(0,0,0,0.24)',
+              'inset 0 6px 16px rgba(255,255,255,0.18)',
+            ].join(', '),
+            opacity: 0.96,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: '9%',
+              borderRadius: '50%',
+              border: `1px solid ${bubbleStyle.rim}`,
+              opacity: 0.55,
+            }}
+          />
+          {bubbleStyle.ring && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: '16%',
+                borderRadius: '50%',
+                border: `2px solid ${bubbleStyle.ring}`,
+                opacity: 0.7,
+                animation: 'space-pulse 2.8s ease-in-out infinite',
+              }}
+            />
+          )}
+          <div
+            style={{
+              position: 'absolute',
+              top: '10%',
+              left: '12%',
+              width: '46%',
+              height: '34%',
+              borderRadius: '50%',
+              background: `radial-gradient(ellipse at 40% 35%, ${bubbleStyle.sparkle} 0%, rgba(255,255,255,0) 100%)`,
+              pointerEvents: 'none',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              right: '18%',
+              bottom: '16%',
+              width: '24%',
+              height: '24%',
+              borderRadius: '50%',
+              background: bubbleStyle.core,
+              filter: 'blur(1px)',
+              opacity: 0.9,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              background: 'linear-gradient(150deg, rgba(255,255,255,0.1) 0%, transparent 46%, rgba(0,0,0,0.12) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
